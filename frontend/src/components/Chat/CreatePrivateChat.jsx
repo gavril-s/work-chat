@@ -14,11 +14,20 @@ const CreatePrivateChat = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
+        console.log('Fetching users...');
         const response = await get('/create_private_chat');
+        console.log('API Response:', response);
 
         if (response.success) {
-          setUsers(response.data.users);
+          console.log('Users from API:', response.data.users);
+          if (response.data.users && response.data.users.length > 0) {
+            setUsers(response.data.users);
+          } else {
+            console.warn('No users returned from API or empty array');
+            setUsers([]);
+          }
         } else {
+          console.error('API returned error:', response.message);
           setError(response.message || 'Не удалось загрузить список пользователей');
         }
       } catch (error) {
@@ -44,8 +53,11 @@ const CreatePrivateChat = () => {
     setError('');
     
     try {
+      // Convert selectedUserId to a number
+      const userIdNum = parseInt(selectedUserId, 10);
+      
       const response = await post('/create_private_chat', {
-        user_id: selectedUserId
+        user_id: userIdNum
       });
       
       if (response.success) {
@@ -90,8 +102,8 @@ const CreatePrivateChat = () => {
                 >
                   <option value="">Выберите пользователя</option>
                   {users.map((user) => (
-                    <option key={user.id} value={user.id}>
-                      {user.name}
+                    <option key={user.ID} value={user.ID}>
+                      {user.Surname} {user.Name} {user.Patronymic}
                     </option>
                   ))}
                 </select>

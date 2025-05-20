@@ -35,7 +35,7 @@ func (s *Storage) GetUserByID(id int) (domain.User, error) {
 
 func (s *Storage) GetAllOtherUsers(username string) ([]domain.User, error) {
 	rows, err := s.db.Query(`
-	SELECT id, name, surname, patronymic 
+	SELECT id, username, name, surname, patronymic 
 	FROM users 
 	WHERE id != (SELECT id FROM users WHERE username = $1)`, username)
 	if err != nil {
@@ -46,7 +46,7 @@ func (s *Storage) GetAllOtherUsers(username string) ([]domain.User, error) {
 	var users []domain.User
 	for rows.Next() {
 		var user domain.User
-		if err := rows.Scan(&user.ID, &user.Name, &user.Surname, &user.Patronymic); err != nil {
+		if err := rows.Scan(&user.ID, &user.Username, &user.Name, &user.Surname, &user.Patronymic); err != nil {
 			return nil, err
 		}
 		users = append(users, user)

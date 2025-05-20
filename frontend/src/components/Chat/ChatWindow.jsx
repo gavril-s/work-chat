@@ -31,23 +31,27 @@ const ChatWindow = () => {
           const { chat, messages, members, user_id, username } = response.data;
           
           // Format messages for display
-          const formattedMessages = messages.map(msg => ({
-            id: msg.id,
-            username: msg.username,
-            content: msg.content,
-            file: msg.file ? {
-              name: msg.file.name,
-              url: `/api/files/${msg.id}`
-            } : null,
-            isCurrentUser: msg.user_id === user_id
-          }));
+          const formattedMessages = messages && messages.length > 0 
+            ? messages.map(msg => ({
+                id: msg.id,
+                username: msg.username,
+                content: msg.content,
+                file: msg.file ? {
+                  name: msg.file.name,
+                  url: `/api/files/${msg.id}`
+                } : null,
+                isCurrentUser: msg.user_id === user_id
+              }))
+            : [];
           
           // Format participants for display
-          const formattedParticipants = members.map(member => ({
-            name: member.full_name,
-            status: member.status,
-            lastActive: member.last_active
-          }));
+          const formattedParticipants = members && members.length > 0
+            ? members.map(member => ({
+                name: member.full_name,
+                status: member.status,
+                lastActive: member.last_active
+              }))
+            : [];
           
           setChat(chat);
           setMessages(formattedMessages);

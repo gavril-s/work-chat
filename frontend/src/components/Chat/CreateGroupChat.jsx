@@ -15,15 +15,24 @@ const CreateGroupChat = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
+        console.log('Fetching users for group chat...');
         const response = await get('/create_group_chat');
+        console.log('API Response (Group Chat):', response);
 
         if (response.success) {
-          setUsers(response.data.users);
+          console.log('Users from API (Group Chat):', response.data.users);
+          if (response.data.users && response.data.users.length > 0) {
+            setUsers(response.data.users);
+          } else {
+            console.warn('No users returned from API or empty array for group chat');
+            setUsers([]);
+          }
         } else {
+          console.error('API returned error for group chat:', response.message);
           setError(response.message || 'Не удалось загрузить список пользователей');
         }
       } catch (error) {
-        console.error('Error fetching users:', error);
+        console.error('Error fetching users for group chat:', error);
         setError('Ошибка при загрузке пользователей');
       } finally {
         setLoading(false);
@@ -60,9 +69,12 @@ const CreateGroupChat = () => {
     setError('');
     
     try {
+      // Convert all selectedUsers IDs to numbers
+      const userIdsNum = selectedUsers.map(id => parseInt(id, 10));
+      
       const response = await post('/create_group_chat', {
-        chat_name: chatName,
-        user_ids: selectedUsers
+        name: chatName,
+        user_ids: userIdsNum
       });
       
       if (response.success) {
@@ -115,17 +127,17 @@ const CreateGroupChat = () => {
                     <p className="text-muted">Нет доступных пользователей</p>
                   ) : (
                     users.map((user) => (
-                      <div className="form-check mb-2" key={user.id}>
+                      <div className="form-check mb-2" key={user.ID}>
                         <input
                           className="form-check-input"
                           type="checkbox"
-                          id={`user-${user.id}`}
-                          value={user.id}
-                          checked={selectedUsers.includes(user.id)}
-                          onChange={() => handleUserSelection(user.id)}
+                          id={`user-${user.ID}`}
+                          value={user.ID}
+                          checked={selectedUsers.includes(user.ID)}
+                          onChange={() => handleUserSelection(user.ID)}
                         />
-                        <label className="form-check-label" htmlFor={`user-${user.id}`}>
-                          {user.name}
+                        <label className="form-check-label" htmlFor={`user-${user.ID}`}>
+                          {user.Surname} {user.Name} {user.Patronymic}
                         </label>
                       </div>
                     ))
