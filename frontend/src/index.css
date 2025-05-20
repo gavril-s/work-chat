@@ -1,0 +1,91 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.chat-container {
+  height: calc(100vh - 120px);
+  display: flex;
+  flex-direction: column;
+}
+
+.messages-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+  background-color: #f8f9fa;
+}
+
+.message {
+  margin-bottom: 15px;
+  padding: 10px;
+  border-radius: 5px;
+  max-width: 70%;
+}
+
+.message-mine {
+  background-color: #d1e7dd;
+  margin-left: auto;
+}
+
+.message-other {
+  background-color: #e2e3e5;
+}
+
+.message-input {
+  padding: 15px;
+  background-color: #fff;
+  border-top: 1px solid #dee2e6;
+}
+
+.chat-list-item {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.chat-list-item:hover {
+  background-color: #f8f9fa;
+}
+
+.chat-list-item.active {
+  background-color: #e9ecef;
+}
+
+.unread-badge {
+  background-color: #dc3545;
+  color: white;
+  border-radius: 50%;
+  padding: 0.25em 0.6em;
+  font-size: 0.75em;
+}
+
+.user-status-online {
+  color: #198754;
+}
+
+.user-status-offline {
+  color: #6c757d;
+}
+
+.file-attachment {
+  display: inline-block;
+  margin-top: 5px;
+  padding: 5px 10px;
+  background-color: #e9ecef;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+.message-actions {
+  display: none;
+  margin-left: 10px;
+}
+
+.message:hover .message-actions {
+  display: inline-block;
+}
