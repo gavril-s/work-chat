@@ -44,11 +44,13 @@ type CreateChatRequest struct {
 type EditMessageRequest struct {
 	MessageID string `json:"message_id"`
 	Content   string `json:"content"`
+	ChatID    string `json:"chat_id"`
 }
 
 // Delete message request structure
 type DeleteMessageRequest struct {
 	MessageID string `json:"message_id"`
+	ChatID    string `json:"chat_id"`
 }
 
 // Send JSON response helper
@@ -678,6 +680,34 @@ func (a *App) apiEditMessageHandler(w http.ResponseWriter, r *http.Request) {
 		message.Content = decryptedContent
 	}
 
+	// Get the chat ID from the request
+	chatID, err := strconv.Atoi(req.ChatID)
+	if err != nil {
+		log.Printf("apiEditMessageHandler: strconv.Atoi(req.ChatID): %v", err)
+		chatID = message.ChatID // Fallback to the message's chat ID
+	}
+
+	// Broadcast the edit to all clients in the chat
+	clients := a.memory.GetClientsByChatID(chatID)
+	log.Printf("apiEditMessageHandler: Broadcasting edit to %d clients in chat %d", len(clients), chatID)
+
+	editMessage := map[string]interface{}{
+		"action":  "edit",
+		"id":      req.MessageID,
+		"content": decryptedContent,
+	}
+
+	for _, client := range clients {
+		log.Printf("apiEditMessageHandler: Sending edit message to client %d", client.UserID)
+		err := client.Conn.WriteJSON(editMessage)
+		if err != nil {
+			log.Printf("apiEditMessageHandler: client.Conn.WriteJSON: %v", err)
+			// Continue with other clients even if one fails
+		} else {
+			log.Printf("apiEditMessageHandler: Successfully sent edit message to client %d", client.UserID)
+		}
+	}
+
 	sendJSONResponse(w, http.StatusOK, APIResponse{
 		Success: true,
 		Message: "Message updated",
@@ -738,6 +768,14 @@ func (a *App) apiDeleteMessageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get message details before deleting it
+	var message domain.Message
+	err = a.storage.GetMessageByID(req.MessageID, &message)
+	if err != nil {
+		log.Printf("apiDeleteMessageHandler: storage.GetMessageByID: %v", err)
+		// Continue with deletion even if we can't get the message details
+	}
+
 	// Delete the message
 	err = a.storage.DeleteMessage(req.MessageID)
 	if err != nil {
@@ -747,6 +785,35 @@ func (a *App) apiDeleteMessageHandler(w http.ResponseWriter, r *http.Request) {
 			Message: "Error deleting message",
 		})
 		return
+	}
+
+	// Get the chat ID from the request or from the message
+	chatID, err := strconv.Atoi(req.ChatID)
+	if err != nil && message.ChatID > 0 {
+		log.Printf("apiDeleteMessageHandler: strconv.Atoi(req.ChatID): %v", err)
+		chatID = message.ChatID // Fallback to the message's chat ID
+	}
+
+	// Broadcast the deletion to all clients in the chat
+	if chatID > 0 {
+		clients := a.memory.GetClientsByChatID(chatID)
+		log.Printf("apiDeleteMessageHandler: Broadcasting delete to %d clients in chat %d", len(clients), chatID)
+
+		deleteMessage := map[string]interface{}{
+			"action": "delete",
+			"id":     req.MessageID,
+		}
+
+		for _, client := range clients {
+			log.Printf("apiDeleteMessageHandler: Sending delete message to client %d", client.UserID)
+			err := client.Conn.WriteJSON(deleteMessage)
+			if err != nil {
+				log.Printf("apiDeleteMessageHandler: client.Conn.WriteJSON: %v", err)
+				// Continue with other clients even if one fails
+			} else {
+				log.Printf("apiDeleteMessageHandler: Successfully sent delete message to client %d", client.UserID)
+			}
+		}
 	}
 
 	sendJSONResponse(w, http.StatusOK, APIResponse{

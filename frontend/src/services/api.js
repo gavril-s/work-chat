@@ -49,20 +49,29 @@ export const post = async (endpoint, data, options = {}) => {
     requestOptions.body = data;
   } else {
     // Otherwise, send as JSON
+    console.log(`POST ${endpoint} request data:`, data);
     requestOptions.body = JSON.stringify(data);
     requestOptions.headers = {
       'Content-Type': 'application/json',
       ...options.headers,
     };
+    console.log(`POST ${endpoint} request headers:`, requestOptions.headers);
   }
   
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, requestOptions);
-  
-  if (!response.ok) {
-    throw new Error(`API error: ${response.status}`);
+  try {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, requestOptions);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`API error (${response.status}):`, errorText);
+      throw new Error(`API error: ${response.status}`);
+    }
+    
+    return response.json();
+  } catch (error) {
+    console.error(`Error in POST ${endpoint}:`, error);
+    throw error;
   }
-  
-  return response.json();
 };
 
 /**

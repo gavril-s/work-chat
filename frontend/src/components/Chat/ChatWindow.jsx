@@ -92,13 +92,23 @@ const ChatWindow = () => {
         console.log('WebSocket message received:', msg);
         
         if (msg.action === 'delete') {
+          console.log('Deleting message with ID:', msg.id);
           // Remove deleted message
-          setMessages(prev => prev.filter(m => m.id !== parseInt(msg.id)));
+          setMessages(prev => {
+            const filtered = prev.filter(m => m.id !== parseInt(msg.id));
+            console.log('Messages after deletion:', filtered);
+            return filtered;
+          });
         } else if (msg.action === 'edit') {
+          console.log('Editing message with ID:', msg.id, 'New content:', msg.content);
           // Update edited message
-          setMessages(prev => prev.map(m => 
-            m.id === parseInt(msg.id) ? { ...m, content: msg.content } : m
-          ));
+          setMessages(prev => {
+            const updated = prev.map(m => 
+              m.id === parseInt(msg.id) ? { ...m, content: msg.content } : m
+            );
+            console.log('Messages after edit:', updated);
+            return updated;
+          });
         } else {
           // Add new message
           const newMessage = {
@@ -112,6 +122,7 @@ const ChatWindow = () => {
             isCurrentUser: msg.UserID === currentUserId
           };
           
+          console.log('Adding new message:', newMessage);
           setMessages(prev => [...prev, newMessage]);
           
           // Show browser notification if message is not from current user
@@ -165,7 +176,7 @@ const ChatWindow = () => {
   const handleEditMessage = async (messageId, newContent) => {
     try {
       const response = await post('/edit-message', {
-        message_id: messageId,
+        message_id: messageId.toString(),
         content: newContent,
         chat_id: chatId
       });
@@ -185,7 +196,7 @@ const ChatWindow = () => {
 
     try {
       const response = await post('/delete-message', {
-        message_id: messageId,
+        message_id: messageId.toString(),
         chat_id: chatId
       });
 
