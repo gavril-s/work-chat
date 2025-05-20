@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import MessageInput from './MessageInput';
+import Loading from '../Common/Loading';
+import { get, post, createWebSocketConnection } from '../../services/api';
 
 const ChatWindow = () => {
   const { id: chatId } = useParams();
@@ -23,10 +25,7 @@ const ChatWindow = () => {
   useEffect(() => {
     const fetchChatData = async () => {
       try {
-        const response = await fetch(`/chat/${chatId}`, {
-          method: 'GET',
-          credentials: 'include',
-        });
+        const response = await get(`/chat/${chatId}`);
 
         if (response.ok) {
           // Parse HTML response
@@ -125,7 +124,7 @@ const ChatWindow = () => {
       }
 
       // Create new WebSocket connection
-      const ws = new WebSocket(`ws://${window.location.host}/ws/chat/${chatId}`);
+      const ws = createWebSocketConnection(chatId);
 
       ws.onopen = () => {
         console.log('WebSocket connection established');
@@ -150,7 +149,7 @@ const ChatWindow = () => {
             content: msg.Content,
             file: msg.File && msg.File.Name ? {
               name: msg.File.Name,
-              url: `/files/${msg.ID}`
+              url: `/api/files/${msg.ID}`
             } : null,
             isCurrentUser: msg.UserID === currentUserId
           };
@@ -212,11 +211,7 @@ const ChatWindow = () => {
       formData.append('content', newContent);
       formData.append('chat_id', chatId);
 
-      const response = await fetch('/edit-message', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include',
-      });
+      const response = await post('/edit-message', formData);
 
       if (!response.ok) {
         console.error('Failed to edit message');
@@ -236,11 +231,7 @@ const ChatWindow = () => {
       formData.append('message_id', messageId);
       formData.append('chat_id', chatId);
 
-      const response = await fetch('/delete-message', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include',
-      });
+      const response = await post('/delete-message', formData);
 
       if (!response.ok) {
         console.error('Failed to delete message');

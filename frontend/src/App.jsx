@@ -5,8 +5,10 @@ import Register from './components/Auth/Register';
 import ChatList from './components/Chat/ChatList';
 import ChatWindow from './components/Chat/ChatWindow';
 import Header from './components/Common/Header';
+import Loading from './components/Common/Loading';
 import CreatePrivateChat from './components/Chat/CreatePrivateChat';
 import CreateGroupChat from './components/Chat/CreateGroupChat';
+import { get, post } from './services/api';
 
 // Create a context for authentication
 export const AuthContext = React.createContext();
@@ -21,13 +23,7 @@ const App = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch('/chats', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-        });
+        const response = await get('/chats');
 
         if (response.ok) {
           setIsAuthenticated(true);
@@ -55,10 +51,7 @@ const App = () => {
 
   const logout = async () => {
     try {
-      const response = await fetch('/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
+      const response = await post('/logout');
 
       if (response.ok) {
         setIsAuthenticated(false);
@@ -71,7 +64,7 @@ const App = () => {
   };
 
   if (loading) {
-    return <div className="d-flex justify-content-center mt-5">Loading...</div>;
+    return <Loading message="Загрузка приложения..." />;
   }
 
   return (

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { get, post } from '../../services/api';
+import Loading from '../Common/Loading';
 
 const CreateGroupChat = () => {
   const [users, setUsers] = useState([]);
@@ -13,10 +15,7 @@ const CreateGroupChat = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch('/create_group_chat', {
-          method: 'GET',
-          credentials: 'include',
-        });
+        const response = await get('/create_group_chat');
 
         if (response.ok) {
           // Parse HTML response
@@ -82,11 +81,7 @@ const CreateGroupChat = () => {
         formData.append('user_ids', userId);
       });
       
-      const response = await fetch('/create_group_chat', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include',
-      });
+      const response = await post('/create_group_chat', formData);
       
       if (response.ok) {
         // Extract chat ID from response

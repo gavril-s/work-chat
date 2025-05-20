@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { get } from '../../services/api';
+import Loading from '../Common/Loading';
 
 const ChatList = () => {
   const [chats, setChats] = useState([]);
@@ -11,10 +13,7 @@ const ChatList = () => {
   useEffect(() => {
     const fetchChats = async () => {
       try {
-        const response = await fetch('/chats', {
-          method: 'GET',
-          credentials: 'include',
-        });
+        const response = await get('/chats');
 
         if (response.ok) {
           // Since we're migrating from a template-based approach to a React app,

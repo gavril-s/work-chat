@@ -25,14 +25,27 @@ services:
 
   app:
     build: 
+      context: .
       dockerfile: ./Dockerfile
-      network: host
     container_name: chat-app
     ports:
       - "127.0.0.1:8080:8080"
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - chat-network
+    restart: always
+
+  frontend:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.frontend
+    container_name: chat-frontend
+    ports:
+      - "127.0.0.1:80:80"
+    depends_on:
+      - app
     networks:
       - chat-network
     restart: always

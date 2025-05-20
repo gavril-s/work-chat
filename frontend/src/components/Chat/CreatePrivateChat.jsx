@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { get, post } from '../../services/api';
+import Loading from '../Common/Loading';
 
 const CreatePrivateChat = () => {
   const [users, setUsers] = useState([]);
@@ -12,10 +14,7 @@ const CreatePrivateChat = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch('/create_private_chat', {
-          method: 'GET',
-          credentials: 'include',
-        });
+        const response = await get('/create_private_chat');
 
         if (response.ok) {
           // Parse HTML response
@@ -62,11 +61,7 @@ const CreatePrivateChat = () => {
       const formData = new FormData();
       formData.append('user_id', selectedUserId);
       
-      const response = await fetch('/create_private_chat', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include',
-      });
+      const response = await post('/create_private_chat', formData);
       
       if (response.ok) {
         // Extract chat ID from response

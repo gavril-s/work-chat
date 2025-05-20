@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../../App';
+import { post } from '../../services/api';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -33,11 +34,7 @@ const Register = () => {
         submitFormData.append(key, value);
       });
 
-      const response = await fetch('/register', {
-        method: 'POST',
-        body: submitFormData,
-        credentials: 'include',
-      });
+      const response = await post('/register', submitFormData);
 
       if (response.ok) {
         login({ username: formData.username });
