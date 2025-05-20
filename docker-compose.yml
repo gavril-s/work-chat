@@ -25,6 +25,7 @@ services:
     build: 
       context: .
       dockerfile: ./Dockerfile
+      network: host
     container_name: chat-app
     depends_on:
       db:
@@ -37,6 +38,7 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile.frontend
+      network: host
     container_name: chat-frontend
     ports:
       - "127.0.0.1:8082:80"
