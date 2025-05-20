@@ -15,51 +15,11 @@ const ChatList = () => {
       try {
         const response = await get('/chats');
 
-        if (response.ok) {
-          // Since we're migrating from a template-based approach to a React app,
-          // we need to parse the HTML response to extract the data
-          // In a real-world scenario, the backend would be modified to return JSON
-          const html = await response.text();
-          
-          // Create a temporary DOM element to parse the HTML
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(html, 'text/html');
-          
-          // Extract the user's full name
-          const nameElement = doc.querySelector('h1');
-          if (nameElement) {
-            const fullNameText = nameElement.textContent;
-            setFullName(fullNameText.replace('Чаты пользователя: ', ''));
-          }
-          
-          // Extract the chat list
-          const chatElements = doc.querySelectorAll('ul li');
-          const parsedChats = Array.from(chatElements).map(li => {
-            const link = li.querySelector('a');
-            const unreadText = li.querySelector('i')?.textContent || '';
-            const unreadMatch = unreadText.match(/(\d+)/);
-            const unreadCount = unreadMatch ? parseInt(unreadMatch[1]) : 0;
-            
-            // Extract chat ID from href
-            const href = link?.getAttribute('href') || '';
-            const idMatch = href.match(/\/chat\/(\d+)/);
-            const id = idMatch ? idMatch[1] : '';
-            
-            // Extract chat name and type
-            const text = link?.textContent || '';
-            const typeText = li.textContent.includes('Личный') ? 'Личный' : 'Групповой';
-            
-            return {
-              id,
-              name: text,
-              isPrivate: typeText === 'Личный',
-              unreadMessageCount: unreadCount
-            };
-          });
-          
-          setChats(parsedChats);
+        if (response.success) {
+          setChats(response.data.chats || []);
+          setFullName(response.data.user.full_name);
         } else {
-          setError('Не удалось загрузить список чатов');
+          setError(response.message || 'Не удалось загрузить список чатов');
         }
       } catch (error) {
         console.error('Error fetching chats:', error);

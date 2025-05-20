@@ -10,7 +10,6 @@ import (
 const (
 	ConfigPathEnvKey  = "CONFIG_PATH"
 	DefaultConfigPath = "./config.yaml"
-	TemplatesDirPath  = "./templates"
 )
 
 type Config struct {

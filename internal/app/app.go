@@ -72,22 +72,26 @@ func NewApp(cfg *config.Config, storage Storage, memory Memory, cipher Cipher) (
 		cipher:  cipher,
 	}
 
-	r.HandleFunc("/", app.loginHandler).Methods("GET", "POST")
+	// API routes will be handled by the API subrouter
+	// All other routes will be handled by the frontend
 
-	r.HandleFunc("/register", app.registerHandler).Methods("GET", "POST")
-	r.HandleFunc("/login", app.loginHandler).Methods("GET", "POST")
-	r.HandleFunc("/chats", app.chatsHandler).Methods("GET")
-	r.HandleFunc("/chat/{id:[0-9]+}", app.chatHandler).Methods("GET")
-	r.HandleFunc("/ws/chat/{id:[0-9]+}", app.wsChatHandler) // Обработчик WebSocket
-	r.HandleFunc("/logout", app.logoutHandler).Methods("POST")
+	// WebSocket handler
+	r.HandleFunc("/ws/chat/{id:[0-9]+}", app.wsChatHandler)
 
-	r.HandleFunc("/create_private_chat", app.createPrivateChatHandler).Methods("GET", "POST")
-	r.HandleFunc("/create_group_chat", app.createGroupChatHandler).Methods("GET", "POST")
-
-	r.HandleFunc("/edit-message", app.editMessageHandler).Methods("POST")
-	r.HandleFunc("/delete-message", app.deleteMessageHandler).Methods("POST")
-
-	r.HandleFunc("/files/{id:[0-9]+}", app.fileHandler).Methods("GET")
+	// API routes
+	api := r.PathPrefix("/api").Subrouter()
+	api.HandleFunc("/login", app.apiLoginHandler).Methods("POST")
+	api.HandleFunc("/register", app.apiRegisterHandler).Methods("POST")
+	api.HandleFunc("/logout", app.apiLogoutHandler).Methods("POST")
+	api.HandleFunc("/chats", app.apiChatsHandler).Methods("GET")
+	api.HandleFunc("/chat/{id:[0-9]+}", app.apiChatHandler).Methods("GET")
+	api.HandleFunc("/create_private_chat", app.apiGetUsersForChatHandler).Methods("GET")
+	api.HandleFunc("/create_private_chat", app.apiCreatePrivateChatHandler).Methods("POST")
+	api.HandleFunc("/create_group_chat", app.apiGetUsersForChatHandler).Methods("GET")
+	api.HandleFunc("/create_group_chat", app.apiCreateGroupChatHandler).Methods("POST")
+	api.HandleFunc("/edit-message", app.apiEditMessageHandler).Methods("POST")
+	api.HandleFunc("/delete-message", app.apiDeleteMessageHandler).Methods("POST")
+	api.HandleFunc("/files/{id:[0-9]+}", app.apiFileHandler).Methods("GET")
 
 	return &app, nil
 }

@@ -29,18 +29,29 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const submitFormData = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
-        submitFormData.append(key, value);
-      });
-
-      const response = await post('/register', submitFormData);
-
-      if (response.ok) {
-        login({ username: formData.username });
+      const response = await post('/register', formData);
+      
+      if (response.success) {
+        // After successful registration, log in the user
+        const loginResponse = await post('/login', {
+          username: formData.username,
+          password: formData.password
+        });
+        
+        if (loginResponse.success) {
+          login({ 
+            username: loginResponse.data.username,
+            userId: loginResponse.data.user_id,
+            fullName: loginResponse.data.full_name
+          });
+        } else {
+          // Registration successful but login failed
+          setError('Регистрация успешна. Пожалуйста, войдите в систему.');
+          // Redirect to login page
+          window.location.href = '/login';
+        }
       } else {
-        const errorText = await response.text();
-        setError(errorText || 'Ошибка при регистрации');
+        setError(response.message || 'Ошибка при регистрации');
       }
     } catch (error) {
       console.error('Error during registration:', error);

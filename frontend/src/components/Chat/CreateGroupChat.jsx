@@ -17,25 +17,10 @@ const CreateGroupChat = () => {
       try {
         const response = await get('/create_group_chat');
 
-        if (response.ok) {
-          // Parse HTML response
-          const html = await response.text();
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(html, 'text/html');
-          
-          // Extract users from checkboxes
-          const checkboxes = doc.querySelectorAll('input[type="checkbox"]');
-          const parsedUsers = Array.from(checkboxes).map(checkbox => {
-            const label = checkbox.nextSibling?.textContent?.trim() || '';
-            return {
-              id: checkbox.value,
-              name: label
-            };
-          });
-          
-          setUsers(parsedUsers);
+        if (response.success) {
+          setUsers(response.data.users);
         } else {
-          setError('Не удалось загрузить список пользователей');
+          setError(response.message || 'Не удалось загрузить список пользователей');
         }
       } catch (error) {
         console.error('Error fetching users:', error);
@@ -75,27 +60,15 @@ const CreateGroupChat = () => {
     setError('');
     
     try {
-      const formData = new FormData();
-      formData.append('name', chatName);
-      selectedUsers.forEach(userId => {
-        formData.append('user_ids', userId);
+      const response = await post('/create_group_chat', {
+        chat_name: chatName,
+        user_ids: selectedUsers
       });
       
-      const response = await post('/create_group_chat', formData);
-      
-      if (response.ok) {
-        // Extract chat ID from response
-        const text = await response.text();
-        const match = text.match(/\/chat\/(\d+)/);
-        
-        if (match && match[1]) {
-          navigate(`/chat/${match[1]}`);
-        } else {
-          navigate('/chats');
-        }
+      if (response.success) {
+        navigate(`/chat/${response.data.chat_id}`);
       } else {
-        const errorText = await response.text();
-        setError(errorText || 'Не удалось создать чат');
+        setError(response.message || 'Не удалось создать чат');
       }
     } catch (error) {
       console.error('Error creating group chat:', error);

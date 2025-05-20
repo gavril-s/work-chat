@@ -25,10 +25,13 @@ const App = () => {
       try {
         const response = await get('/chats');
 
-        if (response.ok) {
+        if (response.success) {
           setIsAuthenticated(true);
-          // We don't have a specific endpoint to get user info,
-          // so we'll just set authenticated status for now
+          setUser({
+            username: response.data.user.username,
+            userId: response.data.user.id,
+            fullName: response.data.user.full_name
+          });
         } else {
           setIsAuthenticated(false);
         }
@@ -53,7 +56,7 @@ const App = () => {
     try {
       const response = await post('/logout');
 
-      if (response.ok) {
+      if (response.success) {
         setIsAuthenticated(false);
         setUser(null);
         navigate('/login');

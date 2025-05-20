@@ -10,7 +10,16 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func (a *App) fileHandler(w http.ResponseWriter, r *http.Request) {
+// API File handler
+func (a *App) apiFileHandler(w http.ResponseWriter, r *http.Request) {
+	if !a.isAuthenticated(r) {
+		sendJSONResponse(w, http.StatusUnauthorized, APIResponse{
+			Success: false,
+			Message: "Not authenticated",
+		})
+		return
+	}
+
 	messageID := mux.Vars(r)["id"]
 
 	var message domain.Message

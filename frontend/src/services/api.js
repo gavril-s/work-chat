@@ -16,6 +16,10 @@ export const get = async (endpoint, options = {}) => {
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     method: 'GET',
     credentials: 'include',
+    headers: {
+      'Accept': 'application/json',
+      ...options.headers,
+    },
     ...options,
   });
   
@@ -23,7 +27,7 @@ export const get = async (endpoint, options = {}) => {
     throw new Error(`API error: ${response.status}`);
   }
   
-  return response;
+  return response.json();
 };
 
 /**
@@ -34,23 +38,31 @@ export const get = async (endpoint, options = {}) => {
  * @returns {Promise<any>} - The response data
  */
 export const post = async (endpoint, data, options = {}) => {
-  // If data is not FormData, convert it to FormData
-  let formData = data;
-  if (!(data instanceof FormData)) {
-    formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      formData.append(key, value);
-    });
-  }
-  
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  let requestOptions = {
     method: 'POST',
-    body: formData,
     credentials: 'include',
     ...options,
-  });
+  };
   
-  return response;
+  // If data is FormData, use it directly
+  if (data instanceof FormData) {
+    requestOptions.body = data;
+  } else {
+    // Otherwise, send as JSON
+    requestOptions.body = JSON.stringify(data);
+    requestOptions.headers = {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    };
+  }
+  
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, requestOptions);
+  
+  if (!response.ok) {
+    throw new Error(`API error: ${response.status}`);
+  }
+  
+  return response.json();
 };
 
 /**

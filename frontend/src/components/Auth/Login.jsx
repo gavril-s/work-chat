@@ -16,17 +16,16 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const formData = new FormData();
-      formData.append('username', username);
-      formData.append('password', password);
-
-      const response = await post('/login', formData);
-
-      if (response.ok) {
-        login({ username });
+      const response = await post('/login', { username, password });
+      
+      if (response.success) {
+        login({ 
+          username: response.data.username,
+          userId: response.data.user_id,
+          fullName: response.data.full_name
+        });
       } else {
-        const errorText = await response.text();
-        setError(errorText || 'Неверное имя пользователя или пароль');
+        setError(response.message || 'Неверное имя пользователя или пароль');
       }
     } catch (error) {
       console.error('Error during login:', error);

@@ -12,7 +12,6 @@ FROM alpine:3.19
 
 WORKDIR /app
 COPY --from=builder /app/chat-app .
-COPY --from=builder /app/templates ./templates
 COPY --from=builder /app/config.yaml ./config.yaml
 
 EXPOSE 8080

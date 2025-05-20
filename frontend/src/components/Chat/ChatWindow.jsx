@@ -27,82 +27,35 @@ const ChatWindow = () => {
       try {
         const response = await get(`/chat/${chatId}`);
 
-        if (response.ok) {
-          // Parse HTML response
-          const html = await response.text();
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(html, 'text/html');
-
-          // Extract chat name
-          const chatName = doc.querySelector('h1')?.textContent.replace('Чат: ', '') || '';
-
-          // Extract messages
-          const messageElements = doc.querySelectorAll('.message');
-          const parsedMessages = Array.from(messageElements).map(el => {
-            const id = el.getAttribute('data-id');
-            const usernameEl = el.querySelector('strong');
-            const username = usernameEl?.textContent.replace(':', '') || '';
-            
-            // Get content (excluding username and buttons)
-            let content = '';
-            for (const node of el.childNodes) {
-              if (node.nodeType === Node.TEXT_NODE) {
-                content += node.textContent.trim();
-              }
-            }
-            
-            // Check if message has file attachment
-            const fileLink = el.querySelector('a');
-            const file = fileLink ? {
-              name: fileLink.textContent,
-              url: fileLink.getAttribute('href')
-            } : null;
-            
-            // Check if current user is the author
-            const hasEditButton = el.querySelector('.edit') !== null;
-            
-            return {
-              id,
-              username,
-              content,
-              file,
-              isCurrentUser: hasEditButton
-            };
-          });
-
-          // Extract participants
-          const participantElements = doc.querySelectorAll('ul li');
-          const parsedParticipants = Array.from(participantElements).map(el => {
-            const text = el.textContent;
-            const name = text.split(' - ')[0].trim();
-            const isOnline = text.includes('Онлайн');
-            const lastActive = isOnline ? null : text.match(/Последний раз в сети: (.+)$/)?.[1] || '';
-            
-            return {
-              name,
-              status: isOnline ? 'online' : 'offline',
-              lastActive
-            };
-          });
-
-          // Extract current user info
-          const scriptContent = Array.from(doc.querySelectorAll('script'))
-            .map(script => script.textContent)
-            .join('\n');
+        if (response.success) {
+          const { chat, messages, members, user_id, username } = response.data;
           
-          const currentUserIdMatch = scriptContent.match(/msg\.UserID !== (\d+)/);
-          const currentUserId = currentUserIdMatch ? parseInt(currentUserIdMatch[1]) : null;
+          // Format messages for display
+          const formattedMessages = messages.map(msg => ({
+            id: msg.id,
+            username: msg.username,
+            content: msg.content,
+            file: msg.file ? {
+              name: msg.file.name,
+              url: `/api/files/${msg.id}`
+            } : null,
+            isCurrentUser: msg.user_id === user_id
+          }));
           
-          const usernameMatch = scriptContent.match(/const username = "([^"]+)"/);
-          const username = usernameMatch ? usernameMatch[1] : '';
-
-          setChat({ id: chatId, name: chatName });
-          setMessages(parsedMessages);
-          setParticipants(parsedParticipants);
-          setCurrentUserId(currentUserId);
+          // Format participants for display
+          const formattedParticipants = members.map(member => ({
+            name: member.full_name,
+            status: member.status,
+            lastActive: member.last_active
+          }));
+          
+          setChat(chat);
+          setMessages(formattedMessages);
+          setParticipants(formattedParticipants);
+          setCurrentUserId(user_id);
           setUsername(username);
         } else {
-          setError('Не удалось загрузить данные чата');
+          setError(response.message || 'Не удалось загрузить данные чата');
         }
       } catch (error) {
         console.error('Error fetching chat data:', error);
@@ -206,15 +159,14 @@ const ChatWindow = () => {
 
   const handleEditMessage = async (messageId, newContent) => {
     try {
-      const formData = new FormData();
-      formData.append('message_id', messageId);
-      formData.append('content', newContent);
-      formData.append('chat_id', chatId);
+      const response = await post('/edit-message', {
+        message_id: messageId,
+        content: newContent,
+        chat_id: chatId
+      });
 
-      const response = await post('/edit-message', formData);
-
-      if (!response.ok) {
-        console.error('Failed to edit message');
+      if (!response.success) {
+        console.error('Failed to edit message:', response.message);
       }
     } catch (error) {
       console.error('Error editing message:', error);
@@ -227,14 +179,13 @@ const ChatWindow = () => {
     }
 
     try {
-      const formData = new FormData();
-      formData.append('message_id', messageId);
-      formData.append('chat_id', chatId);
+      const response = await post('/delete-message', {
+        message_id: messageId,
+        chat_id: chatId
+      });
 
-      const response = await post('/delete-message', formData);
-
-      if (!response.ok) {
-        console.error('Failed to delete message');
+      if (!response.success) {
+        console.error('Failed to delete message:', response.message);
       }
     } catch (error) {
       console.error('Error deleting message:', error);

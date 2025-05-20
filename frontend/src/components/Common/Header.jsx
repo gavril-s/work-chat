@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../App';
 
 const Header = () => {
-  const { isAuthenticated, logout } = useContext(AuthContext);
+  const { isAuthenticated, user, logout } = useContext(AuthContext);
   const location = useLocation();
 
   const handleLogout = (e) => {
@@ -21,7 +21,12 @@ const Header = () => {
       <div className="container d-flex justify-content-between align-items-center">
         <h1 className="h4 m-0">Чат-приложение</h1>
         {isAuthenticated && (
-          <div>
+          <div className="d-flex align-items-center">
+            {user && (
+              <span className="me-3">
+                {user.fullName || user.username}
+              </span>
+            )}
             <Link to="/chats" className="btn btn-outline-light me-2">
               Чаты
             </Link>
