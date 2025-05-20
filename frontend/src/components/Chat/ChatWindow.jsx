@@ -181,7 +181,14 @@ const ChatWindow = () => {
         chat_id: chatId
       });
 
-      if (!response.success) {
+      if (response.success) {
+        // Update message content locally
+        setMessages(prev => 
+          prev.map(msg => 
+            msg.id === messageId ? { ...msg, content: newContent } : msg
+          )
+        );
+      } else {
         console.error('Failed to edit message:', response.message);
       }
     } catch (error) {
@@ -200,7 +207,10 @@ const ChatWindow = () => {
         chat_id: chatId
       });
 
-      if (!response.success) {
+      if (response.success) {
+        // Remove message locally
+        setMessages(prev => prev.filter(msg => msg.id !== messageId));
+      } else {
         console.error('Failed to delete message:', response.message);
       }
     } catch (error) {
