@@ -17,7 +17,16 @@ const ChatList = () => {
 
         if (response.success) {
           setChats(response.data.chats || []);
-          setFullName(response.data.user.full_name);
+          // Check if user data is available and format the full name
+          if (response.data.user) {
+            const user = response.data.user;
+            // Try to get full_name directly, or construct it from Name, Surname, Patronymic
+            const fullName = user.full_name || 
+              (user.Surname && user.Name ? 
+                `${user.Surname} ${user.Name} ${user.Patronymic || ''}` : 
+                user.username || 'Пользователь');
+            setFullName(fullName);
+          }
         } else {
           setError(response.message || 'Не удалось загрузить список чатов');
         }
@@ -63,18 +72,18 @@ const ChatList = () => {
               <ul className="list-group">
                 {chats.map((chat) => (
                   <li
-                    key={chat.id}
+                    key={chat.ID}
                     className="list-group-item chat-list-item d-flex justify-content-between align-items-center"
-                    onClick={() => navigate(`/chat/${chat.id}`)}
+                    onClick={() => navigate(`/chat/${chat.ID}`)}
                   >
                     <div>
-                      <span>{chat.name}</span>
+                      <span>{chat.Name}</span>
                       <small className="text-muted ms-2">
-                        ({chat.isPrivate ? 'Личный' : 'Групповой'})
+                        ({chat.IsPrivate ? 'Личный' : 'Групповой'})
                       </small>
                     </div>
-                    {chat.unreadMessageCount > 0 && (
-                      <span className="badge unread-badge">{chat.unreadMessageCount}</span>
+                    {chat.UnreadMessageCount > 0 && (
+                      <span className="badge unread-badge">{chat.UnreadMessageCount}</span>
                     )}
                   </li>
                 ))}

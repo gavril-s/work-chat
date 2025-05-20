@@ -33,23 +33,23 @@ const ChatWindow = () => {
           // Format messages for display
           const formattedMessages = messages && messages.length > 0 
             ? messages.map(msg => ({
-                id: msg.id,
-                username: msg.username,
-                content: msg.content,
-                file: msg.file ? {
-                  name: msg.file.name,
-                  url: `/api/files/${msg.id}`
+                id: msg.ID,
+                username: msg.Username,
+                content: msg.Content,
+                file: msg.File && msg.File.Name ? {
+                  name: msg.File.Name,
+                  url: `/api/files/${msg.ID}`
                 } : null,
-                isCurrentUser: msg.user_id === user_id
+                isCurrentUser: msg.UserID === user_id
               }))
             : [];
           
           // Format participants for display
           const formattedParticipants = members && members.length > 0
             ? members.map(member => ({
-                name: member.full_name,
-                status: member.status,
-                lastActive: member.last_active
+                name: member.Name && member.Surname ? `${member.Surname} ${member.Name} ${member.Patronymic || ''}` : member.Username,
+                status: member.Status,
+                lastActive: member.LastActive
               }))
             : [];
           
@@ -89,14 +89,15 @@ const ChatWindow = () => {
 
       ws.onmessage = (event) => {
         const msg = JSON.parse(event.data);
+        console.log('WebSocket message received:', msg);
         
         if (msg.action === 'delete') {
           // Remove deleted message
-          setMessages(prev => prev.filter(m => m.id !== msg.id));
+          setMessages(prev => prev.filter(m => m.id !== parseInt(msg.id)));
         } else if (msg.action === 'edit') {
           // Update edited message
           setMessages(prev => prev.map(m => 
-            m.id === msg.id ? { ...m, content: msg.content } : m
+            m.id === parseInt(msg.id) ? { ...m, content: msg.content } : m
           ));
         } else {
           // Add new message

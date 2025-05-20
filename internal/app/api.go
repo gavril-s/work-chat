@@ -322,6 +322,17 @@ func (a *App) apiChatHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Decrypt message content
+	for i := range messages {
+		decryptedContent, err := a.cipher.Decrypt(messages[i].Content)
+		if err != nil {
+			log.Printf("apiChatHandler: cipher.Decrypt: %v", err)
+			// Continue with other messages even if one fails to decrypt
+			continue
+		}
+		messages[i].Content = decryptedContent
+	}
+
 	members, err := a.storage.GetChatMembersByChatID(chatID)
 	if err != nil {
 		log.Printf("apiChatHandler: storage.GetChatMembersByChatID: %v", err)
@@ -656,6 +667,15 @@ func (a *App) apiEditMessageHandler(w http.ResponseWriter, r *http.Request) {
 			Message: "Error retrieving updated message",
 		})
 		return
+	}
+
+	// Decrypt message content
+	decryptedContent, err := a.cipher.Decrypt(message.Content)
+	if err != nil {
+		log.Printf("apiEditMessageHandler: cipher.Decrypt: %v", err)
+		// Continue even if decryption fails
+	} else {
+		message.Content = decryptedContent
 	}
 
 	sendJSONResponse(w, http.StatusOK, APIResponse{
